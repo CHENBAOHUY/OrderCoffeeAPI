@@ -43,6 +43,7 @@ public class SecurityConfig {
                                 "/api/users/forgot-password",
                                 "/api/users/reset-password").permitAll()
                         //Orders và ordersdetails
+                        .requestMatchers("/api/cart/**").hasAnyRole("ADMIN", "CUSTOMER")
                         .requestMatchers(HttpMethod.GET, "/api/orders/{id}", "/api/orders/user/{userId}").hasAnyRole("CUSTOMER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/orders").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER")

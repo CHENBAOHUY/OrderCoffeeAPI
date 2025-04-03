@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -31,16 +32,28 @@ public class Orders {
 
     private LocalDateTime orderDate = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderDetails> orderDetails;
+    @Column(updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    private LocalDateTime updatedAt;
+
+    private String shippingAddress;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Payments> payments;
+    private List<OrderDetails> orderDetails = new ArrayList<>();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Reviews> reviews;
+    private List<Payments> payments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Reviews> reviews = new ArrayList<>();
 
     public enum OrderStatus {
         PENDING, COMPLETED, CANCELLED
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

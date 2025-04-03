@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
-
 @Service
 public class UsersService {
 
@@ -30,7 +29,7 @@ public class UsersService {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private EmailService emailService; // Service để gửi email
+    private EmailService emailService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -78,9 +77,7 @@ public class UsersService {
             throw new IllegalArgumentException("Sai mật khẩu!");
         }
 
-        // ✅ Tạo token từ số điện thoại
-        String token = jwtUtil.generateToken(phone);
-
+        String token = jwtUtil.generateToken(users.getId().toString(), users.getRole().name());
         return new LoginResponseDTO(token, users.getPhone());
     }
 
@@ -127,5 +124,4 @@ public class UsersService {
         users.setResetExpiry(null);
         usersRepository.save(users);
     }
-
 }

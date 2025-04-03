@@ -3,10 +3,12 @@ package com.example.springbootapi.Controller;
 import com.example.springbootapi.Entity.Users;
 import com.example.springbootapi.Service.UsersService;
 import com.example.springbootapi.dto.*;
+import com.example.springbootapi.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,9 @@ public class UsersController {
 
     @Autowired
     private UsersService usersService;
+
+    @Autowired
+    private UserRepository usersRepository;
 
     public UsersController(UsersService usersService) {
         this.usersService = usersService;
@@ -43,7 +48,7 @@ public class UsersController {
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "Đăng ký thành công!");
-            response.put("users", new UserDto(newUsers.getId(), newUsers.getName())); // Sửa "UsersDTO" thành "UserDto"
+            response.put("users", new UserDto(newUsers.getId(), newUsers.getName()));
             return ResponseEntity.status(201).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
@@ -74,6 +79,16 @@ public class UsersController {
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
         usersService.resetPassword(resetPasswordDTO);
         return ResponseEntity.ok(createSuccessResponse("Mật khẩu đã được cập nhật thành công."));
+    }
+
+    // Lấy thông tin người dùng hiện tại
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    public ResponseEntity<Users> getCurrentUser(Authentication authentication) {
+        Integer userId = Integer.parseInt(authentication.getName());
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(user);
     }
 
     // Xử lý lỗi validation

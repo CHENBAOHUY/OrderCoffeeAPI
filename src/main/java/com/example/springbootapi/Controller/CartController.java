@@ -1,12 +1,14 @@
 package com.example.springbootapi.Controller;
 
-import com.example.springbootapi.Entity.Cart;
 import com.example.springbootapi.Service.CartService;
+import com.example.springbootapi.dto.CartDTO;
+import com.example.springbootapi.dto.OrderResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -16,22 +18,84 @@ public class CartController {
     private CartService cartService;
 
     @GetMapping
-    public List<Cart> getAllCartItems() {
-        return cartService.getAllCartItems();
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    public ResponseEntity<CartDTO> getCart(
+            @RequestParam(required = false) Integer userId,
+            Authentication authentication) {
+        Integer targetUserId = getTargetUserId(userId, authentication);
+        CartDTO cart = cartService.getCart(targetUserId, authentication);
+        return ResponseEntity.ok(cart);
     }
 
-    @GetMapping("/{id}")
-    public Optional<Cart> getCartItemById(@PathVariable Integer id) {
-        return cartService.getCartItemById(id);
+    @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    public ResponseEntity<CartDTO> addToCart(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam Integer productId,
+            @RequestParam Integer quantity,
+            Authentication authentication) {
+        Integer targetUserId = getTargetUserId(userId, authentication);
+        CartDTO cart = cartService.addToCart(targetUserId, productId, quantity, authentication);
+        return ResponseEntity.ok(cart);
     }
 
-    @PostMapping
-    public Cart addCartItem(@RequestBody Cart cart) {
-        return cartService.addCartItem(cart);
+    @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    public ResponseEntity<CartDTO> updateCartItemQuantity(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam Integer productId,
+            @RequestParam Integer quantity,
+            Authentication authentication) {
+        Integer targetUserId = getTargetUserId(userId, authentication);
+        CartDTO cart = cartService.updateCartItemQuantity(targetUserId, productId, quantity, authentication);
+        return ResponseEntity.ok(cart);
     }
 
-    @DeleteMapping("/{id}")
-    public void removeCartItem(@PathVariable Integer id) {
-        cartService.removeCartItem(id);
+    @DeleteMapping("/remove")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    public ResponseEntity<?> removeFromCart(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam Integer productId,
+            Authentication authentication) {
+        Integer targetUserId = getTargetUserId(userId, authentication);
+        cartService.removeFromCart(targetUserId, productId, authentication);
+        return ResponseEntity.ok("Product removed from cart");
+    }
+
+    @DeleteMapping("/clear")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    public ResponseEntity<?> clearCart(
+            @RequestParam(required = false) Integer userId,
+            Authentication authentication) {
+        Integer targetUserId = getTargetUserId(userId, authentication);
+        cartService.clearCart(targetUserId, authentication);
+        return ResponseEntity.ok("Cart cleared");
+    }
+
+    @PostMapping("/checkout")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    public ResponseEntity<OrderResponse> checkout(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam String paymentMethod,
+            Authentication authentication) {
+        Integer targetUserId = getTargetUserId(userId, authentication);
+        OrderResponse order = cartService.checkout(targetUserId, paymentMethod, authentication);
+        return ResponseEntity.ok(order);
+    }
+
+    private Integer getTargetUserId(Integer userId, Authentication authentication) {
+        boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        Integer authenticatedUserId = Integer.parseInt(authentication.getName());
+        if (userId == null) {
+            return authenticatedUserId;
+        }
+        if (isAdmin) {
+            return userId;
+        } else {
+            if (!userId.equals(authenticatedUserId)) {
+                throw new SecurityException("You do not have permission to access this cart");
+            }
+            return userId;
+        }
     }
 }
