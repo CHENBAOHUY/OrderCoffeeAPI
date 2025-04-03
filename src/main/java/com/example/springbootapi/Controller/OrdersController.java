@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -35,14 +36,31 @@ public class OrdersController {
         if (orders.isEmpty()) {
             return ResponseEntity.status(404).body(createErrorResponse("No orders found!"));
         }
-        return ResponseEntity.ok(orders);
+        List<OrderResponse> orderResponses = orders.stream()
+                .map(order -> {
+                    OrderResponse response = new OrderResponse(order);
+                    List<OrderDetailResponse> details = orderDetailsService.getOrderDetailsByOrderId(order.getId())
+                            .stream()
+                            .map(OrderDetailResponse::new)
+                            .toList();
+                    response.setOrderDetails(details);
+                    return response;
+                })
+                .toList();
+        return ResponseEntity.ok(orderResponses);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getOrderById(@PathVariable Integer id) {
         Optional<Orders> order = ordersService.getOrderById(id);
         if (order.isPresent()) {
-            return ResponseEntity.ok(order.get());
+            OrderResponse response = new OrderResponse(order.get());
+            List<OrderDetailResponse> details = orderDetailsService.getOrderDetailsByOrderId(order.get().getId())
+                    .stream()
+                    .map(OrderDetailResponse::new)
+                    .toList();
+            response.setOrderDetails(details);
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(404).body(createErrorResponse("Order not found with ID: " + id));
         }
@@ -75,7 +93,8 @@ public class OrdersController {
             Orders order = new Orders();
             order.setUser(orderRequest.getUser());
             List<OrderDetails> orderDetails = orderRequest.getOrderDetails();
-            Orders newOrder = ordersService.createOrder(order, orderDetails);
+            String paymentMethod = orderRequest.getPaymentMethod(); // Lấy paymentMethod từ request
+            OrderResponse newOrder = ordersService.createOrder(order, orderDetails, paymentMethod);
             return ResponseEntity.status(201).body(newOrder);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
@@ -86,7 +105,7 @@ public class OrdersController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateOrderStatus(@PathVariable Integer id, @RequestBody Map<String, String> status) {
         try {
-            Orders updatedOrder = ordersService.updateOrderStatus(id, status.get("status"));
+            OrderResponse updatedOrder = ordersService.updateOrderStatus(id, status.get("status"));
             return ResponseEntity.ok(updatedOrder);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
@@ -120,13 +139,15 @@ public class OrdersController {
     }
 }
 
-// DTO for Order Request
 class OrderRequest {
     private Users user;
     private List<OrderDetails> orderDetails;
+    private String paymentMethod; // Thêm paymentMethod
 
     public Users getUser() { return user; }
     public void setUser(Users user) { this.user = user; }
     public List<OrderDetails> getOrderDetails() { return orderDetails; }
     public void setOrderDetails(List<OrderDetails> orderDetails) { this.orderDetails = orderDetails; }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
 }

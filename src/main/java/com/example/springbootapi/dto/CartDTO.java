@@ -3,12 +3,12 @@ package com.example.springbootapi.dto;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 @Data
 public class CartDTO {
     private Integer id;
-    private Integer userId;
-    private Integer productId;
-    private Integer quantity;
-    private LocalDateTime addedAt;
-
+    private UserDto user;
+    private List<CartItemDTO> cartItems;
+    private LocalDateTime createdAt;
 }

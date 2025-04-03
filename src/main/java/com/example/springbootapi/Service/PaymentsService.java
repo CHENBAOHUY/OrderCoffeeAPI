@@ -1,36 +1,57 @@
 package com.example.springbootapi.Service;
 
 import com.example.springbootapi.Entity.Payments;
+import com.example.springbootapi.dto.PaymentsDTO;
 import com.example.springbootapi.repository.PaymentsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentsService {
-    private final PaymentsRepository paymentsRepository;
 
     @Autowired
-    public PaymentsService(PaymentsRepository paymentsRepository) {
-        this.paymentsRepository = paymentsRepository;
+    private PaymentsRepository paymentsRepository;
+
+    public List<PaymentsDTO> getAllPayments() {
+        return paymentsRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public List<Payments> getAllPayments() {
-        return paymentsRepository.findAll();
+    public Optional<PaymentsDTO> getPaymentById(Integer id) {
+        return paymentsRepository.findById(id).map(this::toDTO);
     }
 
-    public Optional<Payments> getPaymentById(Integer id) {
-        return paymentsRepository.findById(id);
+    public List<PaymentsDTO> getPaymentsByOrderId(Integer orderId) {
+        return paymentsRepository.findByOrderId(orderId).stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
-    public Payments createPayment(Payments payment) {
-        return paymentsRepository.save(payment);
+    @Transactional
+    public PaymentsDTO addPayment(Payments payment) {
+        Payments savedPayment = paymentsRepository.save(payment);
+        return toDTO(savedPayment);
     }
-    public Payments addPayment(Payments payment) {
-        return paymentsRepository.save(payment);
-    }
+
+    @Transactional
     public void deletePayment(Integer id) {
         paymentsRepository.deleteById(id);
+    }
+
+    private PaymentsDTO toDTO(Payments payment) {
+        return new PaymentsDTO(
+                payment.getId(),
+                payment.getOrder().getId(),
+                payment.getPaymentMethod(),
+                payment.getAmount(),
+                payment.getStatus().name(),
+                payment.getPaymentDate()
+        );
     }
 }
