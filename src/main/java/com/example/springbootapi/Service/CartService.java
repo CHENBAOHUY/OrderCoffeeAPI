@@ -134,7 +134,7 @@ public class CartService {
         } else {
             CartItems cartItem = new CartItems();
             cartItem.setCart(cart);
-            cartItem.setProducts(product);
+            cartItem.setProduct(product);
             cartItem.setQuantity(quantity);
             cartItemsRepository.save(cartItem);
         }

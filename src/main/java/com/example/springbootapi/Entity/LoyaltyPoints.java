@@ -2,6 +2,7 @@ package com.example.springbootapi.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -11,17 +12,22 @@ public class LoyaltyPoints {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private Users user;
 
-    @Column(nullable = false)
+    @Column(name = "points", nullable = false)
     private int points;
 
-    private String description;
+    @Column(name = "source", length = 50)
+    private String source;
 
-    @Column(nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
-    private LocalDateTime dateAdded = LocalDateTime.now();
+    @Column(name = "earned_at", nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
+    private LocalDateTime earnedAt = LocalDateTime.now();
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
 }

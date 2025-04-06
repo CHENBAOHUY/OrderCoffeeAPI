@@ -10,11 +10,12 @@ public class Currencies {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "currency_code", nullable = false, unique = true, length = 10)
     private String currencyCode;
 
-    @Column(nullable = false)
+    @Column(name = "currency_name", nullable = false, length = 255)
     private String currencyName;
 }

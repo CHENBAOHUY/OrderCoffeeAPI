@@ -2,7 +2,6 @@ package com.example.springbootapi.Entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,26 +16,31 @@ import java.util.List;
 public class Orders {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @NotNull(message = "User is required")
     private Users user;
 
     @DecimalMin(value = "0.0", inclusive = false, message = "Total price must be greater than 0")
+    @Column(name = "total_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private Double totalPrice;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 50, columnDefinition = "NVARCHAR(50) DEFAULT 'Pending'")
     private OrderStatus status = OrderStatus.PENDING;
 
+    @Column(name = "order_date", columnDefinition = "DATETIME DEFAULT GETDATE()")
     private LocalDateTime orderDate = LocalDateTime.now();
 
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "shipping_address", length = 255)
     private String shippingAddress;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -44,9 +48,6 @@ public class Orders {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Payments> payments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Reviews> reviews = new ArrayList<>();
 
     public enum OrderStatus {
         PENDING, COMPLETED, CANCELLED

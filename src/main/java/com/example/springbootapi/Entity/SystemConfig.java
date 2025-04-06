@@ -2,6 +2,7 @@ package com.example.springbootapi.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -12,17 +13,19 @@ public class SystemConfig {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
-    @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
+    @Column(name = "from_value_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal fromValuePrice;
 
-    @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
+    @Column(name = "to_value_point", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal toValuePoint;
 
-    @Column(nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
+    @Column(name = "from_date", nullable = false)
     private LocalDateTime fromDate = LocalDateTime.now();
 
+    @Column(name = "thru_date")
     private LocalDateTime thruDate;
 
     @ManyToOne

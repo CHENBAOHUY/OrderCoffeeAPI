@@ -1,6 +1,5 @@
 package com.example.springbootapi.Entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,24 +13,21 @@ import java.util.List;
 public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private Users user;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<CartItems> cartItems = new ArrayList<>();
+    @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    private LocalDateTime createdAt;
-
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
-    }
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<CartItems> cartItems = new ArrayList<>(); // Thêm quan hệ với CartItems
 
     @PreUpdate
     public void preUpdate() {
