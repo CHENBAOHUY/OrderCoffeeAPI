@@ -21,10 +21,12 @@ public class ProductsService {
         return productsRepository.findAll();
     }
 
-    public Optional<Products> getProductById(Integer id) {
-        return productsRepository.findById(id);
+    public Optional<Products> getProductById(Integer productId) {
+        if (productId == null) {
+            throw new IllegalArgumentException("Product ID cannot be null");
+        }
+        return productsRepository.findById(productId);
     }
-
     public List<Products> getProductsByCategory(Integer categoryId) {
         return productsRepository.findByCategoriesId(categoryId);
     }

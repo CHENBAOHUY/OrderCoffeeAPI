@@ -10,10 +10,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "SystemConfig")
 public class SystemConfig {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Integer id;
 
     @Column(name = "from_value_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
@@ -22,7 +20,7 @@ public class SystemConfig {
     @Column(name = "to_value_point", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal toValuePoint;
 
-    @Column(name = "from_date", nullable = false)
+    @Column(name = "from_date", nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
     private LocalDateTime fromDate = LocalDateTime.now();
 
     @Column(name = "thru_date")

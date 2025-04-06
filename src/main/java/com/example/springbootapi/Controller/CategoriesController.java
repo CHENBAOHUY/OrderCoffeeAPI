@@ -42,8 +42,12 @@ public class CategoriesController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createCategory(@Valid @RequestBody Categories category) {
-        Categories newCategory = categoriesService.createCategory(category);
-        return ResponseEntity.status(201).body(newCategory);
+        try {
+            Categories newCategory = categoriesService.createCategory(category);
+            return ResponseEntity.status(201).body(newCategory);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
@@ -54,6 +58,7 @@ public class CategoriesController {
                 ? ResponseEntity.ok(category)
                 : ResponseEntity.status(404).body(createErrorResponse("Danh mục không tồn tại!"));
     }
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")

@@ -1,6 +1,5 @@
 package com.example.springbootapi.Entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -16,16 +15,19 @@ public class CartItems {
 
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false)
-    @JsonBackReference
     private Cart cart;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Products product;
 
+    @Column(nullable = false)
     private Integer quantity;
 
+    @Column(name = "added_at", nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
+    private LocalDateTime addedAt = LocalDateTime.now();
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PreUpdate

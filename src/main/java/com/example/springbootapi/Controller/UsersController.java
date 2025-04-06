@@ -14,7 +14,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -67,20 +70,6 @@ public class UsersController {
         }
     }
 
-    // Quên mật khẩu - Gửi OTP qua email
-    @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordDTO forgotPasswordDTO) {
-        usersService.sendResetPasswordLink(forgotPasswordDTO);
-        return ResponseEntity.ok(createSuccessResponse("Link đặt lại mật khẩu đã được gửi đến email của bạn."));
-    }
-
-    // Xác thực OTP và reset mật khẩu
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
-        usersService.resetPassword(resetPasswordDTO);
-        return ResponseEntity.ok(createSuccessResponse("Mật khẩu đã được cập nhật thành công."));
-    }
-
     // Lấy thông tin người dùng hiện tại
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
@@ -102,19 +91,58 @@ public class UsersController {
         });
         return ResponseEntity.badRequest().body(errors);
     }
-
-    // Helper methods for consistent response
-    private Map<String, String> createErrorResponse(String message) {
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "error");
-        response.put("message", message);
-        return response;
+    @GetMapping("/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserSummaryDTO>> getAllUsersSummary() {
+        List<Users> users = usersService.getAllActiveUsers();
+        List<UserSummaryDTO> userSummaries = users.stream()
+                .map(user -> new UserSummaryDTO(user.getId(), user.getName(), user.getPoints()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userSummaries);
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getUserDetails(@PathVariable Integer id) {
+        Optional<Users> userOptional = usersService.getActiveUserById(id);
+        if (userOptional.isPresent()) {
+            Users user = userOptional.get();
+            Map<String, Object> userDetails = new HashMap<>();
+            userDetails.put("name", user.getName());
+            userDetails.put("email", user.getEmail());
+            userDetails.put("phone", user.getPhone());
+            userDetails.put("points", user.getPoints());
+            return ResponseEntity.ok(userDetails);
+        } else {
+            return ResponseEntity.status(404).body(createErrorResponse("Không tìm thấy người dùng với ID: " + id));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
+        Optional<Users> userOptional = usersService.getActiveUserById(id);
+        if (userOptional.isPresent()) {
+            usersService.deleteUser(id);
+            return ResponseEntity.ok(createSuccessResponse("Người dùng ID: " + id + " đã được xóa thành công."));
+        } else {
+            return ResponseEntity.status(404).body(createErrorResponse("Không tìm thấy người dùng với ID: " + id));
+        }
+    }
     private Map<String, String> createSuccessResponse(String message) {
         Map<String, String> response = new HashMap<>();
         response.put("status", "success");
         response.put("message", message);
         return response;
     }
+
+    // Phương thức hỗ trợ tạo phản hồi lỗi
+    private Map<String, String> createErrorResponse(String message) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Lỗi");
+        response.put("message", message);
+        return response;
+    }
+
+
 }

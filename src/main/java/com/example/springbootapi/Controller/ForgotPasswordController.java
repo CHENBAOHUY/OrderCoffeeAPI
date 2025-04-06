@@ -55,21 +55,46 @@ public class ForgotPasswordController {
 
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDTO request) {
-        Optional<Users> userOptional = userRepository.findByResetCode(request.getResetCode());
+        // Kiểm tra định dạng email
+        if (!isValidEmail(request.getEmail())) {
+            return ResponseEntity.badRequest().body("Email không đúng định dạng");
+        }
+
+        // Kiểm tra email và resetCode
+        Optional<Users> userOptional = userRepository.findByEmailAndResetCode(request.getEmail(), request.getResetCode());
         if (userOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("Mã OTP không hợp lệ");
+            return ResponseEntity.badRequest().body("Email hoặc mã OTP không hợp lệ");
         }
 
         Users user = userOptional.get();
+
+        // Kiểm tra thời hạn của mã OTP
         if (user.getResetExpiry() == null || LocalDateTime.now().isAfter(user.getResetExpiry())) {
             return ResponseEntity.badRequest().body("Mã OTP đã hết hạn");
         }
 
+        // Kiểm tra độ dài mật khẩu mới
+        if (request.getNewPassword().length() < 8) {
+            return ResponseEntity.badRequest().body("Mật khẩu mới phải có ít nhất 8 ký tự");
+        }
+
+        // Kiểm tra mật khẩu mới và xác nhận mật khẩu
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            return ResponseEntity.badRequest().body("Mật khẩu mới và xác nhận mật khẩu không khớp");
+        }
+
+        // Cập nhật mật khẩu mới
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        user.setResetCode(null);
-        user.setResetExpiry(null);
+        user.setResetCode(null); // Xóa mã OTP sau khi sử dụng
+        user.setResetExpiry(null); // Xóa thời hạn OTP
         userRepository.save(user);
 
         return ResponseEntity.ok("Mật khẩu đã được đặt lại thành công");
+    }
+
+    // Phương thức kiểm tra định dạng email
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[\\w.-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}$";
+        return email != null && email.matches(emailRegex);
     }
 }
