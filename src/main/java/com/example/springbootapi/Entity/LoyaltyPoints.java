@@ -9,20 +9,18 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "LoyaltyPoints")
 public class LoyaltyPoints {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private Users user;
 
-    @Column(name = "points", nullable = false)
-    private int points;
+    @Column(nullable = false)
+    private Integer points;
 
-    @Column(name = "source", length = 50)
+    @Column(length = 50)
     private String source;
 
     @Column(name = "earned_at", nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")

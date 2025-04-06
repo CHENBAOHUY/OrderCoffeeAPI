@@ -2,28 +2,29 @@ package com.example.springbootapi.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
 @Table(name = "Cart")
 public class Cart {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private Users user;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Products product;
+    @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(nullable = false, columnDefinition = "INT DEFAULT 1")
-    private int quantity = 1;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
-    @Column(nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
-    private LocalDateTime addedAt = LocalDateTime.now();
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CartItems> cartItems = new ArrayList<>();
 }

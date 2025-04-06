@@ -10,10 +10,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "PriceHistory")
 public class PriceHistory {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Integer id;
 
     @ManyToOne

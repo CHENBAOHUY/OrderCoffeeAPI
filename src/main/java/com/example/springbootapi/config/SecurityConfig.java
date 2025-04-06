@@ -40,8 +40,8 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/api/users/register",
                                 "/api/users/login",
-                                "/api/users/forgot-password",
-                                "/api/users/reset-password").permitAll()
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password").permitAll()
                         //Orders và ordersdetails
                         .requestMatchers("/api/cart/**").hasAnyRole("ADMIN", "CUSTOMER")
                         .requestMatchers(HttpMethod.GET, "/api/orders/{id}", "/api/orders/user/{userId}").hasAnyRole("CUSTOMER", "ADMIN")
@@ -55,6 +55,7 @@ public class SecurityConfig {
                         // Products: GET cho CUSTOMER và ADMIN, các phương thức khác chỉ ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").hasAnyRole("CUSTOMER", "ADMIN")
                         .requestMatchers("/api/products/**").hasRole("ADMIN")
+
 
                         // Các request khác cần xác thực
                         .anyRequest().authenticated()
