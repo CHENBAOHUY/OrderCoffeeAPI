@@ -2,7 +2,6 @@ package com.example.springbootapi.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
 @Data
@@ -27,28 +26,24 @@ public class Users {
     private String password;
 
     @Column(nullable = false)
-    private Integer points = 0;
+    private Integer points = 0; // Giá trị mặc định
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
 
     private String resetCode;
-
     private LocalDateTime resetExpiry;
+
 
     @Column(nullable = false)
     private String resetStatus;
-
-    @Column(updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    private LocalDateTime updatedAt;
 
     public enum Role {
         CUSTOMER, ADMIN
     }
 
+    // Đặt giá trị mặc định trước khi lưu vào DB
     @PrePersist
     public void prePersist() {
         if (role == null) {
@@ -57,10 +52,5 @@ public class Users {
         if (resetStatus == null) {
             resetStatus = "Unused";
         }
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
     }
 }

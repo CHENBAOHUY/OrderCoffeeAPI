@@ -2,6 +2,7 @@ package com.example.springbootapi.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -12,18 +13,19 @@ public class PriceHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
-    private Products product; // Đổi tên biến thành "product" để đúng nghĩa
+    private Products product;
 
-    @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
+    @Column(name = "old_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal oldPrice;
 
-    @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
+    @Column(name = "new_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal newPrice;
 
-    @Column(nullable = false)
-    private LocalDateTime changedAt = LocalDateTime.now(); // Đặt mặc định là thời gian hiện tại
+    @Column(name = "changed_at", nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
+    private LocalDateTime changedAt = LocalDateTime.now();
 }

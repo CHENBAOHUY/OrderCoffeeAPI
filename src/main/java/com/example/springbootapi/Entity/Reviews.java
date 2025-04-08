@@ -2,7 +2,6 @@ package com.example.springbootapi.Entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
 @Data
@@ -29,11 +28,4 @@ public class Reviews {
 
     @Column(nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    private LocalDateTime updatedAt;
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

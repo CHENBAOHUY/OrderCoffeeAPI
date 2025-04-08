@@ -7,10 +7,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "order_details")
+@Table(name = "order_details") // Thay đổi từ "OrderDetails" thành "order_details"
 @Getter
 @Setter
 public class OrderDetails {
@@ -33,16 +31,4 @@ public class OrderDetails {
 
     @DecimalMin(value = "0.0", inclusive = false, message = "Item total price must be greater than 0")
     private Double itemTotalPrice;
-
-    private Double unitPrice;
-
-    @Column(updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    private LocalDateTime updatedAt;
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }

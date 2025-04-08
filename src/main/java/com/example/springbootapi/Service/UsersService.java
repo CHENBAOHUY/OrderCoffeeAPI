@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -97,13 +98,15 @@ public class UsersService {
         }
 
         Users users = usersOptional.get();
-        String resetCode = UUID.randomUUID().toString();
+        // Tạo OTP 6 chữ số
+        String resetCode = String.format("%06d", new Random().nextInt(999999)); // Ví dụ: 123456
         users.setResetCode(resetCode);
         users.setResetExpiry(LocalDateTime.ofInstant(Instant.now().plusSeconds(15 * 60), ZoneId.systemDefault()));
         usersRepository.save(users);
 
-        String resetLink = "http://localhost:9090/api/users/reset-password?code=" + resetCode;
-        emailService.sendEmail(users.getEmail(), "Đặt lại mật khẩu", "Nhấp vào link để đặt lại mật khẩu: " + resetLink);
+        // Gửi OTP qua email
+        emailService.sendEmail(users.getEmail(), "Đặt lại mật khẩu",
+                "Mã OTP của bạn là: " + resetCode + ". Vui lòng nhập mã này trong ứng dụng để đặt lại mật khẩu.");
     }
 
     // ✅ Đặt lại mật khẩu
@@ -111,12 +114,12 @@ public class UsersService {
     public void resetPassword(ResetPasswordDTO resetPasswordDTO) {
         Optional<Users> usersOptional = usersRepository.findByResetCode(resetPasswordDTO.getResetCode());
         if (usersOptional.isEmpty()) {
-            throw new RuntimeException("Mã đặt lại mật khẩu không hợp lệ");
+            throw new RuntimeException("Mã OTP không hợp lệ");
         }
 
         Users users = usersOptional.get();
         if (users.getResetExpiry().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Mã đặt lại mật khẩu đã hết hạn");
+            throw new RuntimeException("Mã OTP đã hết hạn");
         }
 
         users.setPassword(passwordEncoder.encode(resetPasswordDTO.getNewPassword()));

@@ -20,14 +20,14 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    // ✅ Phương thức gửi email đặt lại mật khẩu (HTML)
-    public void sendResetPasswordEmail(String toEmail, String resetLink) {
+    // Phương thức gửi email đặt lại mật khẩu với OTP (HTML)
+    public void sendResetPasswordEmail(String toEmail, String otp) {
         sendEmail(toEmail, "Đặt lại mật khẩu của bạn",
-                "<p>Nhấn vào liên kết dưới đây để đặt lại mật khẩu của bạn:</p>"
-                        + "<a href=\"" + resetLink + "\">Đặt lại mật khẩu</a>");
+                "<p>Mã OTP của bạn là: <strong>" + otp + "</strong>.</p>" +
+                        "<p>Vui lòng nhập mã này trong ứng dụng để đặt lại mật khẩu. Mã có hiệu lực trong 15 phút.</p>");
     }
 
-    // ✅ Phương thức gửi email chung (Plain Text hoặc HTML)
+    // Phương thức gửi email chung (Plain Text hoặc HTML)
     public void sendEmail(String to, String subject, String body) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

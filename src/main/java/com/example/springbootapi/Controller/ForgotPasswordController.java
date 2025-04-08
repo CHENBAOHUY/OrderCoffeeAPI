@@ -1,7 +1,8 @@
 package com.example.springbootapi.Controller;
 
-import com.example.springbootapi.dto.ResetPasswordRequest;
 import com.example.springbootapi.Entity.Users;
+import com.example.springbootapi.dto.ForgotPasswordDTO;
+import com.example.springbootapi.dto.ResetPasswordDTO;
 import com.example.springbootapi.repository.UserRepository;
 import com.example.springbootapi.Service.EmailService;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
+import java.util.Random;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,43 +33,39 @@ public class ForgotPasswordController {
 
     // Gửi email reset mật khẩu
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordDTO request) {
         Optional<Users> userOptional = userRepository.findByEmail(request.getEmail());
-
         if (userOptional.isEmpty()) {
             return ResponseEntity.badRequest().body("Email không tồn tại trong hệ thống");
         }
 
         Users user = userOptional.get();
-        String token = UUID.randomUUID().toString();
-        LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(30); // Token hết hạn sau 30 phút
+        String otp = String.format("%06d", new Random().nextInt(999999)); // Tạo OTP 6 chữ số
+        LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(15); // Hết hạn sau 15 phút
 
-        user.setResetCode(token);
+        user.setResetCode(otp);
         user.setResetExpiry(expiryTime);
         userRepository.save(user);
 
-        String resetLink = frontendResetUrl + "?token=" + token;
-        emailService.sendResetPasswordEmail(user.getEmail(), resetLink);
+        // Gửi OTP qua email
+        emailService.sendResetPasswordEmail(user.getEmail(), otp);
 
-        return ResponseEntity.ok("Link đặt lại mật khẩu đã được gửi đến email của bạn");
+        return ResponseEntity.ok("Mã OTP đã được gửi đến email của bạn");
     }
 
-    // Đặt lại mật khẩu
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam("token") String token, @RequestParam("newPassword") String newPassword) {
-        Optional<Users> userOptional = userRepository.findByResetCode(token);
-
+    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDTO request) {
+        Optional<Users> userOptional = userRepository.findByResetCode(request.getResetCode());
         if (userOptional.isEmpty()) {
-            return ResponseEntity.badRequest().body("Token không hợp lệ");
+            return ResponseEntity.badRequest().body("Mã OTP không hợp lệ");
         }
 
         Users user = userOptional.get();
-
         if (user.getResetExpiry() == null || LocalDateTime.now().isAfter(user.getResetExpiry())) {
-            return ResponseEntity.badRequest().body("Token đã hết hạn");
+            return ResponseEntity.badRequest().body("Mã OTP đã hết hạn");
         }
 
-        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         user.setResetCode(null);
         user.setResetExpiry(null);
         userRepository.save(user);

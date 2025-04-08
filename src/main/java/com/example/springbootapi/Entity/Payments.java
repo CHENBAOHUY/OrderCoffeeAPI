@@ -1,46 +1,28 @@
 package com.example.springbootapi.Entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.Data;
 import java.time.LocalDateTime;
 
+@Data
 @Entity
-@Table(name = "payments")
-@Getter
-@Setter
+@Table(name = "Payments")
 public class Payments {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
-    @NotNull(message = "Order is required")
+    @JoinColumn(name = "order_id", nullable = false)
     private Orders order;
 
-    @NotNull(message = "Payment method is required")
+    @Column(nullable = false)
     private String paymentMethod;
 
-    @DecimalMin(value = "0.0", inclusive = false, message = "Amount must be greater than 0")
-    private Double amount;
+    @Column(nullable = false, columnDefinition = "NVARCHAR(50) DEFAULT 'Pending'")
+    private String paymentStatus;
 
-    @Enumerated(EnumType.STRING)
-    private PaymentStatus status;
-
-    private String transactionId;
-
+    @Column(nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
     private LocalDateTime paymentDate = LocalDateTime.now();
-
-    @Column(updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    private LocalDateTime updatedAt;
-
-    public enum PaymentStatus {
-        PENDING, COMPLETED, FAILED
-    }
 }

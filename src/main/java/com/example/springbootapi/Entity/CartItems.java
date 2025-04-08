@@ -25,21 +25,11 @@ public class CartItems {
 
     private Integer quantity;
 
-    private LocalDateTime addedAt;
 
     private LocalDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        addedAt = LocalDateTime.now();
-    }
 
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    public void setProducts(Products product) {
-        this.product = product;
     }
 }

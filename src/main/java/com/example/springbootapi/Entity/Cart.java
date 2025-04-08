@@ -1,17 +1,14 @@
 package com.example.springbootapi.Entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @Entity
 @Table(name = "Cart")
 public class Cart {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -20,21 +17,13 @@ public class Cart {
     @JoinColumn(name = "user_id", nullable = false)
     private Users user;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<CartItems> cartItems = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "product_id", nullable = false)
+    private Products product;
 
-    private LocalDateTime createdAt;
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 1")
+    private int quantity = 1;
 
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    @Column(nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
+    private LocalDateTime addedAt = LocalDateTime.now();
 }

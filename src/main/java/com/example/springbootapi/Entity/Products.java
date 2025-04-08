@@ -9,8 +9,6 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @Setter
@@ -32,22 +30,4 @@ public class Products {
     @JoinColumn(name = "category_id")
     @JsonIgnoreProperties("products")
     private Categories categories;
-
-    private String description;
-
-    private String image;
-
-    private Integer stock;
-
-    @Column(updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    private LocalDateTime updatedAt;
-
-    private Boolean active;
-
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }
