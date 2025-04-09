@@ -49,7 +49,7 @@ public class PaymentsService {
                 payment.getId(),
                 payment.getOrder().getId(),
                 payment.getPaymentMethod(),
-                payment.getAmount(),
+                payment.getOrder().getTotalPrice(), // Dùng totalPrice từ Orders
                 payment.getStatus().name(),
                 payment.getPaymentDate()
         );

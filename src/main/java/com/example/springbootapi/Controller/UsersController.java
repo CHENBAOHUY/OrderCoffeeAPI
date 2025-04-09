@@ -67,20 +67,6 @@ public class UsersController {
         }
     }
 
-    // Quên mật khẩu - Gửi OTP qua email
-    @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordDTO forgotPasswordDTO) {
-        usersService.sendResetPasswordLink(forgotPasswordDTO);
-        return ResponseEntity.ok(createSuccessResponse("Link đặt lại mật khẩu đã được gửi đến email của bạn."));
-    }
-
-    // Xác thực OTP và reset mật khẩu
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDTO resetPasswordDTO) {
-        usersService.resetPassword(resetPasswordDTO);
-        return ResponseEntity.ok(createSuccessResponse("Mật khẩu đã được cập nhật thành công."));
-    }
-
     // Lấy thông tin người dùng hiện tại
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")

@@ -34,7 +34,7 @@ public class OrdersService {
     private OrderDetailsService orderDetailsService;
 
     @Autowired
-    private PaymentsRepository paymentsRepository; // Thêm repository cho Payments
+    private PaymentsRepository paymentsRepository;
 
     // Ánh xạ từ Orders sang OrderResponse
     private OrderResponse toOrderResponse(Orders order) {
@@ -54,7 +54,6 @@ public class OrdersService {
                     Products product = productsService.getProductById(detail.getProduct().getId())
                             .orElseThrow(() -> new RuntimeException("Product not found"));
                     detail.setItemTotalPrice(product.getPrice() * detail.getQuantity());
-                    detail.setUnitPrice(product.getPrice()); // Thêm unitPrice
                     detail.setOrder(order);
                     return detail.getItemTotalPrice();
                 })
@@ -66,9 +65,9 @@ public class OrdersService {
         Payments payment = new Payments();
         payment.setOrder(order);
         payment.setPaymentMethod(paymentMethod);
-        payment.setAmount(totalPrice);
-        payment.setStatus(Payments.PaymentStatus.PENDING);
+        payment.setStatus(Payments.PaymentStatus.PENDING); // Sửa ở đây: dùng enum thay vì String
         payment.setPaymentDate(LocalDateTime.now());
+        payment.setAmount(totalPrice); // Thêm amount để khớp với schema
         order.getPayments().add(payment);
 
         Orders savedOrder = ordersRepository.save(order);
