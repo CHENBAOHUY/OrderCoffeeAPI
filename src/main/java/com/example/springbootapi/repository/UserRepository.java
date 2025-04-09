@@ -10,5 +10,4 @@ public interface UserRepository extends JpaRepository<Users, Integer> {
     Optional<Users> findByPhone(String phone);
     boolean existsByEmail(String email);
     boolean existsByPhone(String phone);
-    Optional<Users> findByEmailAndResetCode(String email, String resetCode); // Thêm phương thức này
 }

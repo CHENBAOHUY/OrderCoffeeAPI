@@ -9,16 +9,15 @@ import com.example.springbootapi.repository.UserRepository;
 import com.example.springbootapi.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Service
@@ -41,20 +40,6 @@ public class UsersService {
 
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}$");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^0\\d{9}$");
-
-    // Thêm phương thức này
-    public Integer getUserIdFromAuthentication(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalArgumentException("User is not authenticated");
-        }
-        // Lấy userId từ Authentication (thường là từ JWT token)
-        String userIdStr = authentication.getName(); // Giả sử getName() trả về userId từ token
-        try {
-            return Integer.parseInt(userIdStr);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Unable to extract user ID from authentication");
-        }
-    }
 
     // Đăng ký tài khoản
     public Users registerUsers(UsersDTO usersDTO) {
@@ -80,16 +65,11 @@ public class UsersService {
         users.setPassword(passwordEncoder.encode(usersDTO.getPassword()));
         users.setPhone(usersDTO.getPhone());
         users.setRole(Users.Role.CUSTOMER);
-        users.setResetStatus("Unused");
 
-        System.out.println("resetStatus trước khi lưu: " + users.getResetStatus());
-        Users savedUsers = usersRepository.save(users);
-        System.out.println("resetStatus sau khi lưu: " + savedUsers.getResetStatus());
-
-        return savedUsers;
+        usersRepository.save(users);
+        return users;
     }
 
-    // Các phương thức khác giữ nguyên
     public LoginResponseDTO loginUsers(String phone, String password) {
         Users users = usersRepository.findByPhone(phone)
                 .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại!"));
@@ -110,6 +90,7 @@ public class UsersService {
         return usersRepository.existsByPhone(phone);
     }
 
+    // ✅ Gửi email đặt lại mật khẩu
     public void sendResetPasswordLink(ForgotPasswordDTO forgotPasswordDTO) {
         Optional<Users> usersOptional = usersRepository.findByEmail(forgotPasswordDTO.getEmail());
         if (usersOptional.isEmpty()) {
@@ -117,15 +98,18 @@ public class UsersService {
         }
 
         Users users = usersOptional.get();
-        String resetCode = String.format("%06d", new Random().nextInt(999999));
+        // Tạo OTP 6 chữ số
+        String resetCode = String.format("%06d", new Random().nextInt(999999)); // Ví dụ: 123456
         users.setResetCode(resetCode);
         users.setResetExpiry(LocalDateTime.ofInstant(Instant.now().plusSeconds(15 * 60), ZoneId.systemDefault()));
         usersRepository.save(users);
 
+        // Gửi OTP qua email
         emailService.sendEmail(users.getEmail(), "Đặt lại mật khẩu",
                 "Mã OTP của bạn là: " + resetCode + ". Vui lòng nhập mã này trong ứng dụng để đặt lại mật khẩu.");
     }
 
+    // ✅ Đặt lại mật khẩu
     @Transactional
     public void resetPassword(ResetPasswordDTO resetPasswordDTO) {
         Optional<Users> usersOptional = usersRepository.findByResetCode(resetPasswordDTO.getResetCode());
@@ -142,10 +126,5 @@ public class UsersService {
         users.setResetCode(null);
         users.setResetExpiry(null);
         usersRepository.save(users);
-    }
-
-    public Users getUserById(Integer id) {
-        return usersRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
     }
 }
