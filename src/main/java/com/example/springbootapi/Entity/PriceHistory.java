@@ -14,9 +14,8 @@ public class PriceHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Products product;
+    @Column(name = "product_id", nullable = false)
+    private Integer productId;
 
     @Column(name = "old_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal oldPrice;
@@ -24,6 +23,6 @@ public class PriceHistory {
     @Column(name = "new_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal newPrice;
 
-    @Column(name = "changed_at", nullable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
+    @Column(name = "changed_at", nullable = false)
     private LocalDateTime changedAt = LocalDateTime.now();
 }

@@ -4,6 +4,7 @@ import com.example.springbootapi.Entity.Currencies;
 import com.example.springbootapi.repository.CurrenciesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -21,7 +22,7 @@ public class CurrenciesService {
         return currenciesRepository.findById(id);
     }
 
-    public Currencies saveCurrency(Currencies currency) {
+    public Currencies addCurrency(Currencies currency) {
         return currenciesRepository.save(currency);
     }
 
@@ -29,7 +30,7 @@ public class CurrenciesService {
         currenciesRepository.deleteById(id);
     }
 
-    public Currencies addCurrency(Currencies currency) {
-        return currenciesRepository.save(currency);
+    public Optional<Currencies> findByCurrencyCode(String currencyCode) {
+        return currenciesRepository.findByCurrencyCode(currencyCode);
     }
 }

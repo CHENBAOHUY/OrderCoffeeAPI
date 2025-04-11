@@ -37,27 +37,30 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+                        .requestMatchers("/api/price-history/update").hasRole("ADMIN")
+                        .requestMatchers("/api/price-history/**").permitAll()
+                        .requestMatchers("/api/currencies").permitAll()
+                        .requestMatchers("/api/currencies/{id}").permitAll()
+                        .requestMatchers("/api/currencies").hasRole("ADMIN")
+                        .requestMatchers("/api/currencies/{id}").hasRole("ADMIN")
+                        .requestMatchers("/api/reviews/add").authenticated()
+                        .requestMatchers("/api/reviews/**").permitAll()
+                        .requestMatchers("/api/loyalty-points/add").authenticated()
+                        .requestMatchers("/api/loyalty-points/**").authenticated()
                         .requestMatchers("/api/users/register",
                                 "/api/users/login",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password").permitAll()
-                        //Orders và ordersdetails
+                        .requestMatchers("/api/users/profile/**").hasRole("CUSTOMER") // Thêm quyền cho profile
                         .requestMatchers("/api/cart/**").hasAnyRole("ADMIN", "CUSTOMER")
                         .requestMatchers(HttpMethod.GET, "/api/orders/{id}", "/api/orders/user/{userId}").hasAnyRole("CUSTOMER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/orders").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER")
                         .requestMatchers("/api/orders/**").hasRole("ADMIN")
-                        // Categories: GET cho CUSTOMER và ADMIN, các phương thức khác chỉ ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").hasAnyRole("CUSTOMER", "ADMIN")
                         .requestMatchers("/api/categories/**").hasRole("ADMIN")
-
-                        // Products: GET cho CUSTOMER và ADMIN, các phương thức khác chỉ ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").hasAnyRole("CUSTOMER", "ADMIN")
                         .requestMatchers("/api/products/**").hasRole("ADMIN")
-
-
-                        // Các request khác cần xác thực
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

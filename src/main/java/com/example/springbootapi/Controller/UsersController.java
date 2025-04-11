@@ -33,7 +33,6 @@ public class UsersController {
         this.usersService = usersService;
     }
 
-    // Đăng ký tài khoản
     @PostMapping("/register")
     public ResponseEntity<?> registerUsers(@Valid @RequestBody UsersDTO usersDTO) {
         try {
@@ -58,7 +57,6 @@ public class UsersController {
         }
     }
 
-    // Đăng nhập
     @PostMapping("/login")
     public ResponseEntity<?> loginUsers(@Valid @RequestBody LoginRequestDTO loginRequest) {
         try {
@@ -70,7 +68,6 @@ public class UsersController {
         }
     }
 
-    // Lấy thông tin người dùng hiện tại
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     public ResponseEntity<Users> getCurrentUser(Authentication authentication) {
@@ -80,17 +77,6 @@ public class UsersController {
         return ResponseEntity.ok(user);
     }
 
-    // Xử lý lỗi validation
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return ResponseEntity.badRequest().body(errors);
-    }
     @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserSummaryDTO>> getAllUsersSummary() {
@@ -129,6 +115,44 @@ public class UsersController {
             return ResponseEntity.status(404).body(createErrorResponse("Không tìm thấy người dùng với ID: " + id));
         }
     }
+
+    @PutMapping("/profile")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody UserUpdateDTO updateDTO, Authentication authentication) {
+        try {
+            Users updatedUser = usersService.updateUserProfile(authentication, updateDTO);
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "Cập nhật thông tin thành công");
+            response.put("user", new UserSummaryDTO(updatedUser.getId(), updatedUser.getName(), updatedUser.getPoints()));
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/profile")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<?> deleteProfile(Authentication authentication) {
+        try {
+            usersService.deleteUserAccount(authentication);
+            return ResponseEntity.ok(createSuccessResponse("Tài khoản đã được xóa thành công"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
+        }
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return ResponseEntity.badRequest().body(errors);
+    }
+
     private Map<String, String> createSuccessResponse(String message) {
         Map<String, String> response = new HashMap<>();
         response.put("status", "success");
@@ -136,13 +160,10 @@ public class UsersController {
         return response;
     }
 
-    // Phương thức hỗ trợ tạo phản hồi lỗi
     private Map<String, String> createErrorResponse(String message) {
         Map<String, String> response = new HashMap<>();
         response.put("error", "Lỗi");
         response.put("message", message);
         return response;
     }
-
-
 }

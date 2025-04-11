@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal; // Thêm import
 import java.time.LocalDateTime;
 
 @Entity
@@ -26,11 +27,11 @@ public class OrderDetails {
     @Column(name = "quantity")
     private Integer quantity;
 
-    @Column(name = "unit_price", columnDefinition = "DECIMAL(10,2)") // Sửa thành unit_price
-    private Double unitPrice;
+    @Column(name = "unit_price", columnDefinition = "DECIMAL(10,2)")
+    private BigDecimal unitPrice; // Sửa từ Double thành BigDecimal
 
     @Column(name = "item_total_price", columnDefinition = "DECIMAL(10,2)")
-    private Double itemTotalPrice;
+    private BigDecimal itemTotalPrice; // Sửa từ Double thành BigDecimal
 
     @Column(name = "created_at", updatable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
     private LocalDateTime createdAt = LocalDateTime.now();

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal; // Thêm import
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class Orders {
     private Users user;
 
     @Column(name = "total_price", nullable = false, columnDefinition = "DECIMAL(10,2)")
-    private Double totalPrice;
+    private BigDecimal totalPrice; // Sửa từ Double thành BigDecimal
 
     @Enumerated(EnumType.STRING)
     @Column(length = 50, columnDefinition = "NVARCHAR(50) DEFAULT 'Pending'")
@@ -37,8 +38,6 @@ public class Orders {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "shipping_address", length = 255)
-    private String shippingAddress;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderDetails> orderDetails = new ArrayList<>();

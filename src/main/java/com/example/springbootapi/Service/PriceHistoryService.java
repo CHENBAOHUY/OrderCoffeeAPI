@@ -1,11 +1,15 @@
 package com.example.springbootapi.Service;
 
 import com.example.springbootapi.Entity.PriceHistory;
+import com.example.springbootapi.Entity.Products;
 import com.example.springbootapi.repository.PriceHistoryRepository;
+import com.example.springbootapi.repository.ProductsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PriceHistoryService {
@@ -13,24 +17,25 @@ public class PriceHistoryService {
     @Autowired
     private PriceHistoryRepository priceHistoryRepository;
 
-    public List<PriceHistory> getAllPriceHistory() {
-        return priceHistoryRepository.findAll();
+    @Autowired
+    private ProductsRepository productsRepository;
+
+    @Transactional
+    public void updatePrice(Integer productId, BigDecimal newPrice) {
+        Products product = productsRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy sản phẩm"));
+
+        PriceHistory history = new PriceHistory();
+        history.setProductId(productId);
+        history.setOldPrice(product.getPrice()); // Dòng 30: Giờ OK vì cả hai đều là BigDecimal
+        history.setNewPrice(newPrice);
+        priceHistoryRepository.save(history);
+
+        product.setPrice(newPrice); // Giờ OK vì cả hai đều là BigDecimal
+        productsRepository.save(product);
     }
 
-    public Optional<PriceHistory> getPriceHistoryById(Integer id) {
-        return priceHistoryRepository.findById(id);
-    }
-
-    public PriceHistory savePriceHistory(PriceHistory priceHistory) {
-        return priceHistoryRepository.save(priceHistory);
-    }
-
-
-    public void deletePriceHistory(Integer id) {
-        priceHistoryRepository.deleteById(id);
-    }
-
-    public PriceHistory addPriceHistory(PriceHistory priceHistory) {
-        return priceHistoryRepository.save(priceHistory);
+    public List<PriceHistory> getPriceHistory(Integer productId) {
+        return priceHistoryRepository.findByProductId(productId);
     }
 }

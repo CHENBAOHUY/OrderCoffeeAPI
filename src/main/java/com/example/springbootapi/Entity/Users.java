@@ -53,7 +53,8 @@ public class Users {
 
     public Boolean isDeleted() { return isDeleted; } // Thay boolean bằng Boolean
     public void setDeleted(Boolean isDeleted) { this.isDeleted = isDeleted; } // Thay boolean bằng Boolean
-
+    @Column(name = "deleted_at") // Thêm trường này
+    private LocalDateTime deletedAt;
     public enum Role {
         CUSTOMER, ADMIN
     }

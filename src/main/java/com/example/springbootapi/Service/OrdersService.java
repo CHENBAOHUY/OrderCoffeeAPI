@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal; // Thêm import
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -49,15 +50,17 @@ public class OrdersService {
 
     @Transactional
     public OrderResponse createOrder(Orders order, List<OrderDetails> orderDetails, String paymentMethod) {
-        double totalPrice = orderDetails.stream()
-                .mapToDouble(detail -> {
+        BigDecimal totalPrice = orderDetails.stream()
+                .map(detail -> {
                     Products product = productsService.getProductById(detail.getProduct().getId())
                             .orElseThrow(() -> new RuntimeException("Product not found"));
-                    detail.setItemTotalPrice(product.getPrice() * detail.getQuantity());
+                    BigDecimal itemTotalPrice = product.getPrice()
+                            .multiply(BigDecimal.valueOf(detail.getQuantity())); // Sửa ở đây
+                    detail.setItemTotalPrice(itemTotalPrice);
                     detail.setOrder(order);
-                    return detail.getItemTotalPrice();
+                    return itemTotalPrice;
                 })
-                .sum();
+                .reduce(BigDecimal.ZERO, BigDecimal::add); // Sửa từ double sang BigDecimal
         order.setTotalPrice(totalPrice);
         order.setOrderDetails(orderDetails);
 
@@ -65,9 +68,9 @@ public class OrdersService {
         Payments payment = new Payments();
         payment.setOrder(order);
         payment.setPaymentMethod(paymentMethod);
-        payment.setStatus(Payments.PaymentStatus.PENDING); // Sửa ở đây: dùng enum thay vì String
+        payment.setStatus(Payments.PaymentStatus.PENDING);
         payment.setPaymentDate(LocalDateTime.now());
-        payment.setAmount(totalPrice); // Thêm amount để khớp với schema
+        payment.setAmount(totalPrice); // Đã là BigDecimal
         order.getPayments().add(payment);
 
         Orders savedOrder = ordersRepository.save(order);

@@ -21,6 +21,10 @@ public class Reviews {
     @JoinColumn(name = "product_id", nullable = false)
     private Products product;
 
+    @ManyToOne
+    @JoinColumn(name = "order_id", nullable = false)
+    private Orders order;
+
     @Column(name = "rating")
     private Integer rating;
 

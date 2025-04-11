@@ -1,10 +1,7 @@
 package com.example.springbootapi.Service;
 
 import com.example.springbootapi.Entity.Users;
-import com.example.springbootapi.dto.ForgotPasswordDTO;
-import com.example.springbootapi.dto.LoginResponseDTO;
-import com.example.springbootapi.dto.ResetPasswordDTO;
-import com.example.springbootapi.dto.UsersDTO;
+import com.example.springbootapi.dto.*;
 import com.example.springbootapi.repository.UserRepository;
 import com.example.springbootapi.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,11 +131,53 @@ public class UsersService {
     }
 
 
+    @Transactional
     public void deleteUser(Integer id) {
         Users user = usersRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với ID: " + id));
         user.setDeleted(true);
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setDeletedAt(LocalDateTime.now()); // Cập nhật deletedAt
+        usersRepository.save(user);
+    }
+    @Transactional
+    public Users updateUserProfile(Authentication authentication, UserUpdateDTO updateDTO) {
+        Integer userId = getUserIdFromAuthentication(authentication);
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với ID: " + userId));
+
+        // Cập nhật thông tin nếu có giá trị mới
+        if (updateDTO.getName() != null && !updateDTO.getName().trim().isEmpty()) {
+            user.setName(updateDTO.getName());
+        }
+        if (updateDTO.getEmail() != null && !updateDTO.getEmail().trim().isEmpty()) {
+            if (!EMAIL_PATTERN.matcher(updateDTO.getEmail()).matches()) {
+                throw new IllegalArgumentException("Email không hợp lệ!");
+            }
+            if (!updateDTO.getEmail().equals(user.getEmail()) && usersRepository.existsByEmail(updateDTO.getEmail())) {
+                throw new IllegalArgumentException("Email đã được sử dụng!");
+            }
+            user.setEmail(updateDTO.getEmail());
+        }
+        if (updateDTO.getPhone() != null && !updateDTO.getPhone().trim().isEmpty()) {
+            if (!PHONE_PATTERN.matcher(updateDTO.getPhone()).matches()) {
+                throw new IllegalArgumentException("Số điện thoại phải có 10 số và bắt đầu bằng 0!");
+            }
+            if (!updateDTO.getPhone().equals(user.getPhone()) && usersRepository.existsByPhone(updateDTO.getPhone())) {
+                throw new IllegalArgumentException("Số điện thoại đã được sử dụng!");
+            }
+            user.setPhone(updateDTO.getPhone());
+        }
+
+        return usersRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteUserAccount(Authentication authentication) {
+        Integer userId = getUserIdFromAuthentication(authentication);
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với ID: " + userId));
+        user.setDeleted(true);
+        user.setDeletedAt(LocalDateTime.now());
         usersRepository.save(user);
     }
     @Transactional

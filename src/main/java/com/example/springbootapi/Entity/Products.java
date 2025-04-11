@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal; // Thêm import
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,7 +21,7 @@ public class Products {
     private String name;
 
     @Column(nullable = false, columnDefinition = "DECIMAL(10,2)")
-    private Double price;
+    private BigDecimal price; // Sửa từ Double thành BigDecimal
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")

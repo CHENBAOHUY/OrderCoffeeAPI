@@ -5,17 +5,15 @@ import com.example.springbootapi.repository.SystemConfigRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class SystemConfigService {
-    private final SystemConfigRepository systemConfigRepository;
 
     @Autowired
-    public SystemConfigService(SystemConfigRepository systemConfigRepository) {
-        this.systemConfigRepository = systemConfigRepository;
-    }
+    private SystemConfigRepository systemConfigRepository;
 
     public List<SystemConfig> getAllSystemConfigs() {
         return systemConfigRepository.findAll();
@@ -25,15 +23,16 @@ public class SystemConfigService {
         return systemConfigRepository.findById(id);
     }
 
-    public SystemConfig createConfig(SystemConfig config) {
-        return systemConfigRepository.save(config);
+    public SystemConfig addSystemConfig(SystemConfig systemConfig) {
+        return systemConfigRepository.save(systemConfig);
     }
 
     public void deleteSystemConfig(Integer id) {
         systemConfigRepository.deleteById(id);
     }
 
-    public SystemConfig addSystemConfig(SystemConfig systemConfig) {
-        return systemConfigRepository.save(systemConfig);
+    public SystemConfig getActiveConfig(String currencyCode) {
+        return systemConfigRepository.findActiveConfigByCurrencyCode(currencyCode, LocalDateTime.now())
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy cấu hình cho " + currencyCode));
     }
 }

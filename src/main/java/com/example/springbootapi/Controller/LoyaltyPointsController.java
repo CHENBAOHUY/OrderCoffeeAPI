@@ -1,12 +1,13 @@
 package com.example.springbootapi.Controller;
 
-import com.example.springbootapi.Entity.LoyaltyPoints;
+import com.example.springbootapi.dto.LoyaltyPointsDTO;
 import com.example.springbootapi.Service.LoyaltyPointsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/loyalty-points")
@@ -15,23 +16,17 @@ public class LoyaltyPointsController {
     @Autowired
     private LoyaltyPointsService loyaltyPointsService;
 
-    @GetMapping
-    public List<LoyaltyPoints> getAllLoyaltyPoints() {
-        return loyaltyPointsService.getAllLoyaltyPoints();
+    @PostMapping("/add")
+    public ResponseEntity<String> addPoints(
+            @RequestParam Integer userId,
+            @RequestParam BigDecimal paymentAmount,
+            @RequestParam String currencyCode) {
+        loyaltyPointsService.addPoints(userId, paymentAmount, currencyCode);
+        return ResponseEntity.ok("Đã cộng " + paymentAmount + " " + currencyCode + " thành điểm thưởng");
     }
 
-    @GetMapping("/{id}")
-    public Optional<LoyaltyPoints> getLoyaltyPointById(@PathVariable Integer id) {
-        return loyaltyPointsService.getLoyaltyPointById(id);
-    }
-
-    @PostMapping
-    public LoyaltyPoints addLoyaltyPoints(@RequestBody LoyaltyPoints loyaltyPoints) {
-        return loyaltyPointsService.addLoyaltyPoints(loyaltyPoints);
-    }
-
-    @DeleteMapping("/{id}")
-    public void deleteLoyaltyPoints(@PathVariable Integer id) {
-        loyaltyPointsService.deleteLoyaltyPoints(id);
+    @GetMapping("/{userId}")
+    public ResponseEntity<List<LoyaltyPointsDTO>> getPointsHistory(@PathVariable Integer userId) {
+        return ResponseEntity.ok(loyaltyPointsService.getPointsHistory(userId));
     }
 }

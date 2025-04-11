@@ -25,14 +25,17 @@ public class CartService {
     private final UsersService usersService;
     private final ProductsService productsService;
     private final OrdersRepository ordersRepository;
+    private final LoyaltyPointsService loyaltyPointsService; // Thêm dependency
 
     @Autowired
     public CartService(CartRepository cartRepository, UsersService usersService,
-                       ProductsService productsService, OrdersRepository ordersRepository) {
+                       ProductsService productsService, OrdersRepository ordersRepository,
+                       LoyaltyPointsService loyaltyPointsService) { // Thêm vào constructor
         this.cartRepository = cartRepository;
         this.usersService = usersService;
         this.productsService = productsService;
         this.ordersRepository = ordersRepository;
+        this.loyaltyPointsService = loyaltyPointsService;
     }
 
     public CartDTO getCart(Integer userId, Authentication authentication) {
@@ -56,7 +59,7 @@ public class CartService {
             ProductResponseDTO product = new ProductResponseDTO();
             product.setId(productEntity.getId());
             product.setName(productEntity.getName());
-            product.setPrice(BigDecimal.valueOf(productEntity.getPrice()));
+            product.setPrice(productEntity.getPrice());
             product.setCategoryId(productEntity.getCategories().getId());
             item.setProduct(product);
             item.setQuantity(cartItem.getQuantity());
@@ -149,13 +152,11 @@ public class CartService {
     public OrderResponse checkout(Integer userId, String paymentMethod, Authentication authentication) {
         logger.info("Starting checkout for userId: {}, paymentMethod: {}", userId, paymentMethod);
 
-        // Kiểm tra paymentMethod
         if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
             logger.error("Payment method is null or empty for userId: {}", userId);
             throw new IllegalArgumentException("Payment method cannot be null or empty");
         }
 
-        // Kiểm tra giỏ hàng
         Optional<Cart> cartOpt = cartRepository.findByUser_Id(userId);
         if (cartOpt.isEmpty() || cartOpt.get().getCartItems().isEmpty()) {
             logger.warn("Cart is empty for userId: {}", userId);
@@ -164,29 +165,28 @@ public class CartService {
         Cart cart = cartOpt.get();
         Users user = usersService.getUserById(userId);
 
-        // Tạo đơn hàng
         Orders order = new Orders();
         order.setUser(user);
-        Double totalPrice = cart.getCartItems().stream()
-                .map(cartItem -> cartItem.getProduct().getPrice() * cartItem.getQuantity())
-                .reduce(0.0, Double::sum);
+        BigDecimal totalPrice = cart.getCartItems().stream()
+                .map(cartItem -> cartItem.getProduct().getPrice()
+                        .multiply(BigDecimal.valueOf(cartItem.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         order.setTotalPrice(totalPrice);
         order.setStatus(Orders.OrderStatus.PENDING);
         order.setOrderDate(LocalDateTime.now());
 
-        // Tạo chi tiết đơn hàng
         List<OrderDetails> orderDetailsList = cart.getCartItems().stream().map(cartItem -> {
             OrderDetails detail = new OrderDetails();
             detail.setOrder(order);
             detail.setProduct(cartItem.getProduct());
             detail.setQuantity(cartItem.getQuantity());
             detail.setUnitPrice(cartItem.getProduct().getPrice());
-            detail.setItemTotalPrice(cartItem.getProduct().getPrice() * cartItem.getQuantity());
+            detail.setItemTotalPrice(cartItem.getProduct().getPrice()
+                    .multiply(BigDecimal.valueOf(cartItem.getQuantity())));
             return detail;
         }).collect(Collectors.toList());
         order.setOrderDetails(orderDetailsList);
 
-        // Tạo thanh toán
         Payments payment = new Payments();
         payment.setOrder(order);
         payment.setPaymentMethod(paymentMethod);
@@ -196,11 +196,11 @@ public class CartService {
         order.getPayments().add(payment);
 
         logger.info("Saving order with paymentMethod: {}", payment.getPaymentMethod());
-
-        // Lưu đơn hàng
         ordersRepository.save(order);
 
-        // Xóa giỏ hàng sau khi thanh toán
+        // Tích điểm sau khi tạo đơn hàng
+        loyaltyPointsService.addPoints(userId, totalPrice, "VND"); // Cộng điểm dựa trên totalPrice
+
         cart.getCartItems().clear();
         cartRepository.save(cart);
 
