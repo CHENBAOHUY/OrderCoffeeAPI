@@ -25,12 +25,12 @@ public class CartService {
     private final UsersService usersService;
     private final ProductsService productsService;
     private final OrdersRepository ordersRepository;
-    private final LoyaltyPointsService loyaltyPointsService; // Thêm dependency
+    private final LoyaltyPointsService loyaltyPointsService;
 
     @Autowired
     public CartService(CartRepository cartRepository, UsersService usersService,
                        ProductsService productsService, OrdersRepository ordersRepository,
-                       LoyaltyPointsService loyaltyPointsService) { // Thêm vào constructor
+                       LoyaltyPointsService loyaltyPointsService) {
         this.cartRepository = cartRepository;
         this.usersService = usersService;
         this.productsService = productsService;
@@ -63,6 +63,7 @@ public class CartService {
             product.setCategoryId(productEntity.getCategories().getId());
             item.setProduct(product);
             item.setQuantity(cartItem.getQuantity());
+            item.setSize(cartItem.getSize());
             item.setAddedAt(cartItem.getAddedAt());
             return item;
         }).collect(Collectors.toList()));
@@ -71,12 +72,15 @@ public class CartService {
         return cartDTO;
     }
 
-    public CartDTO addToCart(Integer userId, Integer productId, Integer quantity, Authentication authentication) {
+    public CartDTO addToCart(Integer userId, Integer productId, Integer quantity, String size, Authentication authentication) {
         if (productId == null) {
             throw new IllegalArgumentException("Product ID cannot be null");
         }
         if (quantity == null || quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than 0");
+        }
+        if (size == null || !size.matches("^(S|M|L)$")) {
+            throw new IllegalArgumentException("Size must be S, M, or L");
         }
 
         Optional<Cart> cartOpt = cartRepository.findByUser_Id(userId);
@@ -96,7 +100,7 @@ public class CartService {
         cart.getCartItems().removeIf(item -> item.getProduct() == null);
 
         Optional<CartItems> existingItem = cart.getCartItems().stream()
-                .filter(item -> item.getProduct() != null && item.getProduct().getId().equals(productId))
+                .filter(item -> item.getProduct() != null && item.getProduct().getId().equals(productId) && item.getSize().equals(size))
                 .findFirst();
 
         CartItems cartItem;
@@ -108,6 +112,7 @@ public class CartService {
             cartItem.setCart(cart);
             cartItem.setProduct(product);
             cartItem.setQuantity(quantity);
+            cartItem.setSize(size);
             cart.getCartItems().add(cartItem);
         }
 
@@ -115,17 +120,23 @@ public class CartService {
         return getCart(userId, authentication);
     }
 
-    public CartDTO updateCartItem(Integer userId, Integer cartItemId, Integer productId, Integer quantity, Authentication authentication) {
+    public CartDTO updateCartItem(Integer userId, Integer cartItemId, Integer productId, Integer quantity, String size, Authentication authentication) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than 0");
         }
+        if (size == null || !size.matches("^(S|M|L)$")) {
+            throw new IllegalArgumentException("Size must be S, M, or L");
+        }
+
         Cart cart = cartRepository.findByUser_Id(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found for user: " + userId));
         CartItems cartItem = cart.getCartItems().stream()
                 .filter(item -> item.getId().equals(cartItemId) && item.getProduct().getId().equals(productId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+
         cartItem.setQuantity(quantity);
+        cartItem.setSize(size);
         cartRepository.save(cart);
         return getCart(userId, authentication);
     }
@@ -183,6 +194,7 @@ public class CartService {
             detail.setUnitPrice(cartItem.getProduct().getPrice());
             detail.setItemTotalPrice(cartItem.getProduct().getPrice()
                     .multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+            detail.setSize(cartItem.getSize());
             return detail;
         }).collect(Collectors.toList());
         order.setOrderDetails(orderDetailsList);
@@ -198,8 +210,7 @@ public class CartService {
         logger.info("Saving order with paymentMethod: {}", payment.getPaymentMethod());
         ordersRepository.save(order);
 
-        // Tích điểm sau khi tạo đơn hàng
-        loyaltyPointsService.addPoints(userId, totalPrice, "VND"); // Cộng điểm dựa trên totalPrice
+        loyaltyPointsService.addPoints(userId, totalPrice, "VND");
 
         cart.getCartItems().clear();
         cartRepository.save(cart);

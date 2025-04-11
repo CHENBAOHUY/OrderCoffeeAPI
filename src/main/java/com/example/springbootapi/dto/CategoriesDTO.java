@@ -6,10 +6,13 @@ import lombok.Data;
 
 @Data
 public class CategoriesDTO {
+    private Integer id;
+
     @NotBlank(message = "Tên danh mục không được để trống")
     @Size(min = 3, max = 100, message = "Tên danh mục phải từ 3 đến 100 ký tự")
-    private Integer id;
     private String name;
-    private String description;
 
+    private String image;
+
+    private String description;
 }

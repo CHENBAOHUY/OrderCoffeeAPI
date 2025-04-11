@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal; // Thêm import
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -55,12 +55,12 @@ public class OrdersService {
                     Products product = productsService.getProductById(detail.getProduct().getId())
                             .orElseThrow(() -> new RuntimeException("Product not found"));
                     BigDecimal itemTotalPrice = product.getPrice()
-                            .multiply(BigDecimal.valueOf(detail.getQuantity())); // Sửa ở đây
+                            .multiply(BigDecimal.valueOf(detail.getQuantity()));
                     detail.setItemTotalPrice(itemTotalPrice);
                     detail.setOrder(order);
                     return itemTotalPrice;
                 })
-                .reduce(BigDecimal.ZERO, BigDecimal::add); // Sửa từ double sang BigDecimal
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         order.setTotalPrice(totalPrice);
         order.setOrderDetails(orderDetails);
 
@@ -70,7 +70,7 @@ public class OrdersService {
         payment.setPaymentMethod(paymentMethod);
         payment.setStatus(Payments.PaymentStatus.PENDING);
         payment.setPaymentDate(LocalDateTime.now());
-        payment.setAmount(totalPrice); // Đã là BigDecimal
+        payment.setAmount(totalPrice);
         order.getPayments().add(payment);
 
         Orders savedOrder = ordersRepository.save(order);
@@ -103,5 +103,11 @@ public class OrdersService {
         Orders order = ordersRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         ordersRepository.delete(order);
+    }
+
+    // Phương thức mới để cập nhật đơn hàng từ callback
+    @Transactional
+    public void updateOrder(Orders order) {
+        ordersRepository.save(order);
     }
 }

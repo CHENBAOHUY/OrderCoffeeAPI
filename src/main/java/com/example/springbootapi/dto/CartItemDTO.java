@@ -10,4 +10,5 @@ public class CartItemDTO {
     private ProductResponseDTO product;
     private Integer quantity;
     private LocalDateTime addedAt;
+    private String size;
 }

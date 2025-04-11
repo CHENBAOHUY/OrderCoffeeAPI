@@ -30,6 +30,9 @@ public class CartItems {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "size", nullable = false)
+    private String size;
+
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();

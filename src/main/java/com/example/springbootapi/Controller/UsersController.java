@@ -33,24 +33,27 @@ public class UsersController {
         this.usersService = usersService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUsers(@Valid @RequestBody UsersDTO usersDTO) {
+    @PostMapping("/register/initiate")
+    public ResponseEntity<?> initiateRegistration(@Valid @RequestBody UsersDTO usersDTO) {
         try {
-            if (!usersDTO.getPassword().equals(usersDTO.getConfirmPassword())) {
-                return ResponseEntity.badRequest().body(createErrorResponse("Mật khẩu và xác nhận mật khẩu không khớp!"));
-            }
-            if (usersService.emailExists(usersDTO.getEmail())) {
-                return ResponseEntity.badRequest().body(createErrorResponse("Email đã tồn tại!"));
-            }
-            if (usersService.phoneExists(usersDTO.getPhone())) {
-                return ResponseEntity.badRequest().body(createErrorResponse("Số điện thoại đã được sử dụng!"));
-            }
+            String message = usersService.initiateRegistration(usersDTO);
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", message);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
+        }
+    }
 
-            Users newUsers = usersService.registerUsers(usersDTO);
+    @PostMapping("/register/complete")
+    public ResponseEntity<?> completeRegistration(@Valid @RequestBody UsersDTO usersDTO, @RequestParam String otp) {
+        try {
+            Users user = usersService.completeRegistration(usersDTO, otp);
             Map<String, Object> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "Đăng ký thành công!");
-            response.put("users", new UserDto(newUsers.getId(), newUsers.getName()));
+            response.put("users", new UserDto(user.getId(), user.getName()));
             return ResponseEntity.status(201).body(response);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
@@ -142,6 +145,16 @@ public class UsersController {
         }
     }
 
+    @PutMapping("/password")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordDTO changePasswordDTO, Authentication authentication) {
+        try {
+            usersService.changePassword(authentication, changePasswordDTO);
+            return ResponseEntity.ok(createSuccessResponse("Đổi mật khẩu thành công!"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
+        }
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();

@@ -39,6 +39,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/price-history/update").hasRole("ADMIN")
                         .requestMatchers("/api/price-history/**").permitAll()
+                        .requestMatchers("/api/categories").permitAll()
+                        .requestMatchers("/api/categories/{id}").permitAll()
+                        .requestMatchers("/api/products/").permitAll()
+                        .requestMatchers("/api/products/{id}").permitAll()
+                        .requestMatchers("/api/products/category/{categoryId}").permitAll()
                         .requestMatchers("/api/currencies").permitAll()
                         .requestMatchers("/api/currencies/{id}").permitAll()
                         .requestMatchers("/api/currencies").hasRole("ADMIN")
@@ -47,7 +52,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/reviews/**").permitAll()
                         .requestMatchers("/api/loyalty-points/add").authenticated()
                         .requestMatchers("/api/loyalty-points/**").authenticated()
+                        .requestMatchers("/api/orders/callback").permitAll()
                         .requestMatchers("/api/users/register",
+                                "/api/users/register/initiate",
+                                "/api/users/register/complete",
                                 "/api/users/login",
                                 "/api/auth/forgot-password",
                                 "/api/auth/reset-password").permitAll()

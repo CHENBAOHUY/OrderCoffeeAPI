@@ -38,13 +38,26 @@
 			<version>1.22.0</version>  <!-- Kiểm tra phiên bản mới nhất trên Maven Central -->
 		</dependency>
 
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.16.0</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.microsoft.sqlserver</groupId>
+			<artifactId>mssql-jdbc</artifactId>
+			<version>12.10.0.jre11</version>
+		</dependency>
+
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
-		
+
 
 		<dependency>
 			<groupId>com.google.firebase</groupId>
