@@ -2,6 +2,7 @@ package com.example.springbootapi.dto;
 
 import com.example.springbootapi.Entity.Orders;
 import com.example.springbootapi.Entity.Payments;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,8 +19,8 @@ public class OrderResponse {
 
     public OrderResponse(Orders order) {
         this.id = order.getId();
-        this.userId = order.getUser() != null ? order.getUser().getId() : null; // Thêm kiểm tra null
-        this.userName = order.getUser() != null ? order.getUser().getName() : null; // Thêm kiểm tra null
+        this.userId = order.getUser().getId();
+        this.userName = order.getUser().getName();
         this.totalPrice = order.getTotalPrice();
         this.status = order.getStatus().name();
         this.orderDate = order.getOrderDate();
@@ -28,8 +29,8 @@ public class OrderResponse {
                         payment.getId(),
                         payment.getOrder().getId(),
                         payment.getPaymentMethod(),
-                        order.getTotalPrice(), // Dùng totalPrice từ Orders thay vì amount từ Payments
-                        payment.getStatus().name(), // Sửa từ getPaymentStatus() thành getStatus().name()
+                        payment.getAmount(),
+                        payment.getStatus().name(),
                         payment.getPaymentDate()))
                 .collect(Collectors.toList());
     }

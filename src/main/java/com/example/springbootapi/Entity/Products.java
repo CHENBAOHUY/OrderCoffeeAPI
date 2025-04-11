@@ -34,7 +34,7 @@ public class Products {
     private String image;
 
     @Column(name = "is_deleted", columnDefinition = "BIT DEFAULT 0")
-    private Boolean isDeleted = false;
+    private Boolean isDeleted;
 
     @Column(name = "stock")
     private Integer stock;

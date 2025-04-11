@@ -2,6 +2,7 @@ package com.example.springbootapi.Controller;
 
 import com.example.springbootapi.Entity.Products;
 import com.example.springbootapi.Service.ProductsService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ public class ProductsController {
     private ProductsService productsService;
 
     @GetMapping
+    @PermitAll
     public ResponseEntity<?> getAllProducts() {
         List<Products> products = productsService.getAllProducts();
         if (products.isEmpty()) {
@@ -30,6 +32,7 @@ public class ProductsController {
     }
 
     @GetMapping("/{id}")
+    @PermitAll
     public ResponseEntity<?> getProductById(@PathVariable Integer id) {
         Optional<Products> product = productsService.getProductById(id);
         if (product.isPresent()) {
@@ -40,6 +43,7 @@ public class ProductsController {
     }
 
     @GetMapping("/category/{categoryId}")
+    @PermitAll
     public ResponseEntity<?> getProductsByCategory(@PathVariable Integer categoryId) {
         List<Products> products = productsService.getProductsByCategory(categoryId);
         if (products.isEmpty()) {

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.security.PermitAll;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ public class CategoriesController {
     private CategoriesService categoriesService;
 
     @GetMapping
+    @PermitAll
     public ResponseEntity<?> getAllCategories() {
         List<Categories> categories = categoriesService.getAllCategories();
         if (categories.isEmpty()) {
@@ -30,6 +32,7 @@ public class CategoriesController {
     }
 
     @GetMapping("/{id}")
+    @PermitAll
     public ResponseEntity<?> getCategoryById(@PathVariable Integer id) {
         Optional<Categories> category = categoriesService.getCategoryById(id);
         if (category.isPresent()) {
