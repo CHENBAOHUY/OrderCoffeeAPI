@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Configuration
-public class FirebaseConfig {
+public class  FirebaseConfig {
     @Bean
     public FirebaseApp initializeFirebase() throws IOException {
         InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("doan-a85ca-firebase-adminsdk-fbsvc-33e5dd10b6.json");
