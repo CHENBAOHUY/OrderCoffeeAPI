@@ -34,4 +34,10 @@ public class CurrenciesController {
     public void deleteCurrency(@PathVariable Integer id) {
         currenciesService.deleteCurrency(id);
     }
+
+    @PutMapping("/{id}")
+    public Currencies updateCurrency(@PathVariable Integer id, @RequestBody Currencies currency) {
+        currency.setId(id);
+        return currenciesService.updateCurrency(currency);
+    }
 }

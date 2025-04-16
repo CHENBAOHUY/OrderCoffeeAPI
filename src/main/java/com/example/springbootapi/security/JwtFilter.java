@@ -28,11 +28,23 @@ public class JwtFilter extends OncePerRequestFilter {
     private CustomUserDetailsService userDetailsService;
 
     private static final List<String> PUBLIC_URLS = List.of(
+            "/api/products",
+            "/api/products/",
+            "/api/products/category/",
+            "/api/categories",
+            "/api/categories/",
+            "/api/currencies",
+            "/api/currencies/",
+            "/api/reviews/",
+            "/api/price-history/",
+            "/api/system-config/",
             "/api/users/register",
-            "/api/users/forgot-password",
-            "/api/users/reset-password",
-            "/api/users/verify-otp",
-            "/api/users/login"
+            "/api/users/register/initiate",
+            "/api/users/register/complete",
+            "/api/users/login",
+            "/api/auth/forgot-password",
+            "/api/auth/reset-password",
+            "/api/orders/callback"
     );
 
     @Override

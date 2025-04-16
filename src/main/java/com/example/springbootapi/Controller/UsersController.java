@@ -66,17 +66,19 @@ public class UsersController {
             LoginResponseDTO response = usersService.loginUsers(loginRequest.getPhone(), loginRequest.getPassword());
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            System.out.println("❌ Lỗi đăng nhập: " + e.getMessage());
-            return ResponseEntity.status(401).body(createErrorResponse("Sai thông tin đăng nhập!"));
+            return ResponseEntity.status(401).body(createErrorResponse(e.getMessage()));
         }
     }
 
     @GetMapping("/me")
     @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
     public ResponseEntity<Users> getCurrentUser(Authentication authentication) {
-        Integer userId = Integer.parseInt(authentication.getName());
+        Integer userId = usersService.getUserIdFromAuthentication(authentication);
         Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với ID: " + userId));
+        if (user.isDeleted()) {
+            throw new IllegalArgumentException("Tài khoản đã bị xóa!");
+        }
         return ResponseEntity.ok(user);
     }
 
@@ -155,6 +157,7 @@ public class UsersController {
             return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
         }
     }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();

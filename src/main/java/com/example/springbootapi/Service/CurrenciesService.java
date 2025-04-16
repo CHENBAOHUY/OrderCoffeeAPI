@@ -33,4 +33,10 @@ public class CurrenciesService {
     public Optional<Currencies> findByCurrencyCode(String currencyCode) {
         return currenciesRepository.findByCurrencyCode(currencyCode);
     }
+    public Currencies updateCurrency(Currencies currency) {
+        if (!currenciesRepository.existsById(currency.getId())) {
+            throw new RuntimeException("Currency not found");
+        }
+        return currenciesRepository.save(currency);
+    }
 }
