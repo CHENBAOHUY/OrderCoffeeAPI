@@ -50,10 +50,11 @@ public class OrdersService {
 
     @Transactional
     public OrderResponse createOrder(Orders order, List<OrderDetails> orderDetails, String paymentMethod) {
+        System.out.println("📦 Tạo đơn hàng mới: " + order.getId());
         BigDecimal totalPrice = orderDetails.stream()
                 .map(detail -> {
                     Products product = productsService.getProductById(detail.getProduct().getId())
-                            .orElseThrow(() -> new RuntimeException("Product not found"));
+                            .orElseThrow(() -> new RuntimeException("Product not found with ID: " + detail.getProduct().getId()));
                     BigDecimal itemTotalPrice = product.getPrice()
                             .multiply(BigDecimal.valueOf(detail.getQuantity()));
                     detail.setItemTotalPrice(itemTotalPrice);
@@ -61,10 +62,10 @@ public class OrdersService {
                     return itemTotalPrice;
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         order.setTotalPrice(totalPrice);
         order.setOrderDetails(orderDetails);
 
-        // Tạo bản ghi thanh toán
         Payments payment = new Payments();
         payment.setOrder(order);
         payment.setPaymentMethod(paymentMethod);
@@ -74,9 +75,9 @@ public class OrdersService {
         order.getPayments().add(payment);
 
         Orders savedOrder = ordersRepository.save(order);
+        System.out.println("✅ Đơn hàng được tạo: " + savedOrder.getId());
         return toOrderResponse(savedOrder);
     }
-
     public List<Orders> getAllOrders() {
         return ordersRepository.findAll();
     }

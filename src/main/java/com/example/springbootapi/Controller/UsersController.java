@@ -5,6 +5,8 @@ import com.example.springbootapi.Service.UsersService;
 import com.example.springbootapi.dto.*;
 import com.example.springbootapi.repository.UserRepository;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/users")
 public class UsersController {
+    private static final Logger logger = LoggerFactory.getLogger(UsersController.class);
 
     @Autowired
     private UsersService usersService;
@@ -31,6 +34,15 @@ public class UsersController {
 
     public UsersController(UsersService usersService) {
         this.usersService = usersService;
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
+    public ResponseEntity<UserProfileDTO> getCurrentUser(Authentication authentication) {
+        logger.info("Fetching profile for user: {}", authentication.getName());
+        UserProfileDTO userProfile = usersService.getUserProfile(authentication);
+        logger.debug("User profile response: {}", userProfile);
+        return ResponseEntity.ok(userProfile);
     }
 
     @PostMapping("/register/initiate")
@@ -68,18 +80,6 @@ public class UsersController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(401).body(createErrorResponse(e.getMessage()));
         }
-    }
-
-    @GetMapping("/me")
-    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMER')")
-    public ResponseEntity<Users> getCurrentUser(Authentication authentication) {
-        Integer userId = usersService.getUserIdFromAuthentication(authentication);
-        Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với ID: " + userId));
-        if (user.isDeleted()) {
-            throw new IllegalArgumentException("Tài khoản đã bị xóa!");
-        }
-        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/list")
@@ -158,17 +158,6 @@ public class UsersController {
         }
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return ResponseEntity.badRequest().body(errors);
-    }
-
     private Map<String, String> createSuccessResponse(String message) {
         Map<String, String> response = new HashMap<>();
         response.put("status", "success");
@@ -181,5 +170,16 @@ public class UsersController {
         response.put("error", "Lỗi");
         response.put("message", message);
         return response;
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return ResponseEntity.badRequest().body(errors);
     }
 }

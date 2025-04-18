@@ -5,6 +5,7 @@ import com.example.springbootapi.dto.ForgotPasswordDTO;
 import com.example.springbootapi.dto.ResetPasswordDTO;
 import com.example.springbootapi.repository.UserRepository;
 import com.example.springbootapi.Service.EmailService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,7 +55,7 @@ public class ForgotPasswordController {
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordDTO request) {
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordDTO request) {
         // Kiểm tra định dạng email
         if (!isValidEmail(request.getEmail())) {
             return ResponseEntity.badRequest().body("Email không đúng định dạng");

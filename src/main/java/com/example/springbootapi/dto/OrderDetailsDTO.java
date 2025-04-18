@@ -1,16 +1,18 @@
 package com.example.springbootapi.dto;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
-
-@Data
+@Getter
+@Setter
+@Builder
 public class OrderDetailsDTO {
-    private Integer id;
-    private Integer orderId;
     private Integer productId;
+    private String productName;
     private Integer quantity;
+    private BigDecimal unitPrice;
     private BigDecimal itemTotalPrice;
-
 }

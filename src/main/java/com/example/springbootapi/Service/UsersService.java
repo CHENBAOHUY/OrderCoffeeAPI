@@ -40,6 +40,22 @@ public class UsersService {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[\\w.-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}$");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^0\\d{9}$");
 
+    public UserProfileDTO getUserProfile(Authentication authentication) {
+        Integer userId = getUserIdFromAuthentication(authentication);
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng với ID: " + userId));
+        if (user.isDeleted()) {
+            throw new IllegalArgumentException("Tài khoản đã bị xóa!");
+        }
+        return new UserProfileDTO(
+                user.getId(),
+                user.getName(),
+                user.getPhone(),
+                user.getEmail(),
+                user.getPoints() // Nếu points là BigDecimal, thay bằng user.getPoints().intValue()
+        );
+    }
+
     public Integer getUserIdFromAuthentication(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new IllegalArgumentException("User is not authenticated");

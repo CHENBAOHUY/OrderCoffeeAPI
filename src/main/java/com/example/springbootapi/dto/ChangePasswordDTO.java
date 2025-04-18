@@ -2,6 +2,7 @@ package com.example.springbootapi.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.AssertTrue;
 
 public class ChangePasswordDTO {
     @NotBlank(message = "Mật khẩu cũ không được để trống!")
@@ -13,6 +14,11 @@ public class ChangePasswordDTO {
 
     @NotBlank(message = "Xác nhận mật khẩu mới không được để trống!")
     private String confirmPassword;
+
+    @AssertTrue(message = "Mật khẩu xác nhận không khớp với mật khẩu mới!")
+    public boolean isPasswordMatching() {
+        return newPassword != null && newPassword.equals(confirmPassword);
+    }
 
     // Getters và Setters
     public String getOldPassword() { return oldPassword; }

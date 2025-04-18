@@ -7,7 +7,6 @@ import com.example.springbootapi.repository.OrdersRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +37,8 @@ public class CartService {
         this.loyaltyPointsService = loyaltyPointsService;
     }
 
-    public CartDTO getCart(Integer userId, Authentication authentication) {
+    public CartDTO getCart(Integer userId) {
+        logger.info("Fetching cart for userId: {}", userId);
         Optional<Cart> cartOpt = cartRepository.findByUser_Id(userId);
         Cart cart = cartOpt.orElseGet(() -> {
             Cart newCart = new Cart();
@@ -48,6 +48,7 @@ public class CartService {
         });
 
         CartDTO cartDTO = new CartDTO();
+        cartDTO.setId(cart.getId()); // Thêm dòng này
         Users user = usersService.getUserById(userId);
         UserDto userDto = new UserDto(user.getId(), user.getName());
         cartDTO.setUser(userDto);
@@ -72,7 +73,9 @@ public class CartService {
         return cartDTO;
     }
 
-    public CartDTO addToCart(Integer userId, Integer productId, Integer quantity, String size, Authentication authentication) {
+    @Transactional
+    public CartDTO addToCart(Integer userId, Integer productId, Integer quantity, String size) {
+        logger.info("Adding to cart for userId: {}, productId: {}, quantity: {}, size: {}", userId, productId, quantity, size);
         if (productId == null) {
             throw new IllegalArgumentException("Product ID cannot be null");
         }
@@ -83,13 +86,14 @@ public class CartService {
             throw new IllegalArgumentException("Size must be S, M, or L");
         }
 
+        Users user = usersService.getUserById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found with id: " + userId);
+        }
+
         Optional<Cart> cartOpt = cartRepository.findByUser_Id(userId);
         Cart cart = cartOpt.orElseGet(() -> {
             Cart newCart = new Cart();
-            Users user = usersService.getUserById(userId);
-            if (user == null) {
-                throw new IllegalArgumentException("User not found with id: " + userId);
-            }
             newCart.setUser(user);
             return cartRepository.save(newCart);
         });
@@ -117,10 +121,11 @@ public class CartService {
         }
 
         cartRepository.save(cart);
-        return getCart(userId, authentication);
+        return getCart(userId);
     }
 
-    public CartDTO updateCartItem(Integer userId, Integer cartItemId, Integer productId, Integer quantity, String size, Authentication authentication) {
+    public CartDTO updateCartItem(Integer userId, Integer cartItemId, Integer productId, Integer quantity, String size) {
+        logger.info("Updating cart for userId: {}, cartItemId: {}", userId, cartItemId);
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be greater than 0");
         }
@@ -138,10 +143,11 @@ public class CartService {
         cartItem.setQuantity(quantity);
         cartItem.setSize(size);
         cartRepository.save(cart);
-        return getCart(userId, authentication);
+        return getCart(userId);
     }
 
-    public void removeFromCart(Integer userId, Integer productId, Authentication authentication) {
+    public void removeFromCart(Integer userId, Integer productId) {
+        logger.info("Removing product {} from cart for userId: {}", productId, userId);
         Optional<Cart> cartOpt = cartRepository.findByUser_Id(userId);
         if (cartOpt.isPresent()) {
             Cart cart = cartOpt.get();
@@ -150,7 +156,8 @@ public class CartService {
         }
     }
 
-    public void clearCart(Integer userId, Authentication authentication) {
+    public void clearCart(Integer userId) {
+        logger.info("Clearing cart for userId: {}", userId);
         Optional<Cart> cartOpt = cartRepository.findByUser_Id(userId);
         if (cartOpt.isPresent()) {
             Cart cart = cartOpt.get();
@@ -160,9 +167,8 @@ public class CartService {
     }
 
     @Transactional
-    public OrderResponse checkout(Integer userId, String paymentMethod, Authentication authentication) {
+    public OrderResponse checkout(Integer userId, String paymentMethod) {
         logger.info("Starting checkout for userId: {}, paymentMethod: {}", userId, paymentMethod);
-
         if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
             logger.error("Payment method is null or empty for userId: {}", userId);
             throw new IllegalArgumentException("Payment method cannot be null or empty");

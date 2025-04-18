@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigDecimal; // Thêm import
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -31,13 +31,29 @@ public class Payments {
     private LocalDateTime paymentDate = LocalDateTime.now();
 
     @Column(name = "amount", nullable = false, columnDefinition = "DECIMAL(10,2)")
-    private BigDecimal amount; // Sửa từ Double thành BigDecimal
+    private BigDecimal amount;
 
     @Column(name = "created_at", updatable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "transaction_id", length = 100)
     private String transactionId;
+
+    // Thêm các trường mới
+    @Column(name = "response_code", length = 10)
+    private String responseCode;
+
+    @Column(name = "response_message", length = 255)
+    private String responseMessage;
+
+    @Column(name = "bank_code", length = 20)
+    private String bankCode;
+
+    @Column(name = "txn_ref", length = 100) // Thêm trường để lưu vnp_TxnRef
+    private String txnRef;
+
+    @Column(name = "card_type", length = 20)
+    private String cardType;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
@@ -48,6 +64,6 @@ public class Payments {
 
     @PreUpdate
     public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 }

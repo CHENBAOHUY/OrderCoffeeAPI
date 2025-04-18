@@ -16,7 +16,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -27,33 +26,12 @@ public class JwtFilter extends OncePerRequestFilter {
     @Autowired
     private CustomUserDetailsService userDetailsService;
 
-    private static final List<String> PUBLIC_URLS = List.of(
-            "/api/products",
-            "/api/products/",
-            "/api/products/category/",
-            "/api/categories",
-            "/api/categories/",
-            "/api/currencies",
-            "/api/currencies/",
-            "/api/reviews/",
-            "/api/price-history/",
-            "/api/system-config/",
-            "/api/users/register",
-            "/api/users/register/initiate",
-            "/api/users/register/complete",
-            "/api/users/login",
-            "/api/auth/forgot-password",
-            "/api/auth/reset-password",
-            "/api/orders/callback"
-    );
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-
+        // Bỏ qua /api/orders/callback
         String requestPath = request.getRequestURI();
-
-        if (PUBLIC_URLS.stream().anyMatch(requestPath::startsWith)) {
+        if (requestPath.equals("/api/orders/callback")) {
             chain.doFilter(request, response);
             return;
         }
@@ -62,6 +40,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = null;
         String userId = null;
 
+        // Kiểm tra và trích xuất token từ header
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7);
             try {
@@ -75,6 +54,7 @@ public class JwtFilter extends OncePerRequestFilter {
             System.out.println("⚠️ Không tìm thấy token trong request hoặc định dạng sai.");
         }
 
+        // Nếu có userId và chưa có thông tin xác thực trong SecurityContextHolder
         if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
             if (jwtUtil.validateToken(token, userDetails)) {

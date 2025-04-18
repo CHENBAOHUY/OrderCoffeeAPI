@@ -3,12 +3,8 @@ package com.example.springbootapi.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-
 @Data
 public class CartAddRequest {
-    @NotNull(message = "User ID is required")
-    private Integer userId;
-
     @NotNull(message = "Product ID is required")
     private Integer productId;
 
