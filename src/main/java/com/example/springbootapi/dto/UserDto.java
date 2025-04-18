@@ -1,5 +1,9 @@
 package com.example.springbootapi.dto;
 
+
+import lombok.Data;
+
+@Data
 public class UserDto {
     private Integer id;
     private String name;
@@ -9,9 +13,5 @@ public class UserDto {
         this.name = name;
     }
 
-    // Getters, setters
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+
 }

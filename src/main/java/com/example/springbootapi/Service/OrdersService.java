@@ -50,10 +50,18 @@ public class OrdersService {
 
     @Transactional
     public OrderResponse createOrder(Orders order, List<OrderDetails> orderDetails, String paymentMethod) {
+        // Kiểm tra đầu vào
+        if (order == null || orderDetails == null || orderDetails.isEmpty() || paymentMethod == null) {
+            throw new IllegalArgumentException("Order, order details, and payment method cannot be null or empty");
+        }
+
         BigDecimal totalPrice = orderDetails.stream()
                 .map(detail -> {
+                    if (detail.getProduct() == null) {
+                        throw new IllegalArgumentException("Product in order details cannot be null");
+                    }
                     Products product = productsService.getProductById(detail.getProduct().getId())
-                            .orElseThrow(() -> new RuntimeException("Product not found"));
+                            .orElseThrow(() -> new RuntimeException("Product not found with ID: " + detail.getProduct().getId()));
                     BigDecimal itemTotalPrice = product.getPrice()
                             .multiply(BigDecimal.valueOf(detail.getQuantity()));
                     detail.setItemTotalPrice(itemTotalPrice);
@@ -61,6 +69,7 @@ public class OrdersService {
                     return itemTotalPrice;
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         order.setTotalPrice(totalPrice);
         order.setOrderDetails(orderDetails);
 
@@ -76,7 +85,6 @@ public class OrdersService {
         Orders savedOrder = ordersRepository.save(order);
         return toOrderResponse(savedOrder);
     }
-
     public List<Orders> getAllOrders() {
         return ordersRepository.findAll();
     }

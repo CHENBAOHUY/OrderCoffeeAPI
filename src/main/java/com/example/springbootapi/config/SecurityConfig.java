@@ -56,6 +56,8 @@ public class SecurityConfig {
                                 "/api/auth/reset-password").permitAll()
                         .requestMatchers("/api/orders/callback").permitAll()
                         // Protected endpoints
+                        .requestMatchers("/api/users/password").hasRole("CUSTOMER")
+                        .requestMatchers("/api/users/me").permitAll()
                         .requestMatchers("/api/users/profile/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/users/list").hasRole("ADMIN")
                         .requestMatchers("/api/users/{id}").hasRole("ADMIN")

@@ -97,11 +97,31 @@ public class OrdersController {
                 .toList();
         return ResponseEntity.ok(orderResponses);
     }
-
     @PostMapping
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<?> createOrder(@Valid @RequestBody OrderRequest orderRequest) {
         try {
+            // Kiểm tra orderRequest
+            if (orderRequest.getOrderDetails() == null || orderRequest.getOrderDetails().isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("Order details cannot be null or empty"));
+            }
+            if (orderRequest.getUser() == null) {
+                return ResponseEntity.badRequest().body(createErrorResponse("User cannot be null"));
+            }
+            if (orderRequest.getPaymentMethod() == null || orderRequest.getPaymentMethod().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("Payment method cannot be null or empty"));
+            }
+
+            // Kiểm tra từng OrderDetails
+            for (OrderDetails detail : orderRequest.getOrderDetails()) {
+                if (detail.getProduct() == null) {
+                    return ResponseEntity.badRequest().body(createErrorResponse("Product in order details cannot be null"));
+                }
+                if (detail.getQuantity() == null || detail.getQuantity() <= 0) {
+                    return ResponseEntity.badRequest().body(createErrorResponse("Quantity in order details must be greater than 0"));
+                }
+            }
+
             Orders order = new Orders();
             order.setUser(orderRequest.getUser());
             List<OrderDetails> orderDetails = orderRequest.getOrderDetails();
